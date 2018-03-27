@@ -6,6 +6,8 @@ from django.views.debug import ExceptionReporter
 
 from . import slack_message
 
+from .app_settings import app_settings
+
 
 class SlackExceptionHandler(logging.Handler):
     """
@@ -77,10 +79,16 @@ class SlackExceptionHandler(logging.Handler):
         }
 
         attachments.update(self.kwargs)
+
+        channel = self.kwargs.pop('channel', app_settings.CHANNEL)
+        if not channel:
+            channel = app_settings.CHANNEL
+
         self.send_message(
             self.template,
             {'text': subject},
             self.generate_attachments(**attachments),
+            channel=channel
         )
 
     def generate_attachments(self, **kwargs):
