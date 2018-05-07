@@ -18,6 +18,9 @@ class SlackExceptionHandler(logging.Handler):
         # Pop any kwargs that shouldn't be passed into the Slack message
         # attachment here.
         self.template = kwargs.pop('template', 'django_slack/exception.slack')
+        self.channel = kwargs.pop('channel', None)
+        if not self.channel:
+            self.channel = app_settings.CHANNEL
 
         self.kwargs = kwargs
         logging.Handler.__init__(self)
@@ -80,15 +83,11 @@ class SlackExceptionHandler(logging.Handler):
 
         attachments.update(self.kwargs)
 
-        channel = self.kwargs.pop('channel', app_settings.CHANNEL)
-        if not channel:
-            channel = app_settings.CHANNEL
-
         self.send_message(
             self.template,
             {'text': subject},
             self.generate_attachments(**attachments),
-            channel=channel
+            channel=self.channel
         )
 
     def generate_attachments(self, **kwargs):
